@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 
 const registerUser = async(req,res)=>{
-    const {username,email, password, role} = req.body;
+    const {username,email, password, role = "listener"} = req.body;
     
     const alreadyExists = await User.findOne({
         $or: [{username, email}]
@@ -12,14 +12,14 @@ const registerUser = async(req,res)=>{
         console.error("user already exists")
     }
     const hashPassword = await bcrypt.hash(password, 10);
-    console.log("strated")
+    // console.log("strated")
     const user = await User.create({
         username,
         email,
         password:hashPassword,
         role
     })
-    console.log("created!")
+    // console.log("created!")
     const created = User.findById(user._id).select("-password")
     if(!created){
         return res.status(500).json({

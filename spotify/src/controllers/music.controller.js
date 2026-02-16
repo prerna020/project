@@ -4,14 +4,12 @@ import { uploadFile } from "../utils/imagekit.js";
 const createMusic = async (req,res) =>{
     try {
         const { title } = req.body
-    
+        
         const file = req.file;
         if (!file) {
             return res.status(400).json({ message: "No file uploaded" });
         }
-        const result = await uploadFile(
-  `data:${file.mimetype};base64,${file.buffer.toString("base64")}`
-);
+        const result = await uploadFile(`data:${file.mimetype};base64,${file.buffer.toString("base64")}`);
 
     
         const music = await Music.create({
@@ -19,6 +17,7 @@ const createMusic = async (req,res) =>{
             title,
             artist: req.user._id
         })
+        // console.log(result.url)
         const createdMusic = await Music.findById(music._id)
         
         res.status(200).json({
@@ -31,7 +30,7 @@ const createMusic = async (req,res) =>{
             }
         })
     } catch (error) {
-        console.error("Error in music", error)
+        console.error("Error in creating Music", error)
         return res.status(500).json({
             message: "Internal Server Error",
             error: error.message
