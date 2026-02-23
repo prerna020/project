@@ -65,7 +65,7 @@ function Chat() {
            }
          }))
 
-       }} className='bg-purple-600 text-white p-4'>
+       }} className='bg-gray-500 text-white p-4'>
          Send message
        </button>
      </div>
