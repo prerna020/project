@@ -56,7 +56,7 @@ const createAlbum = async (req,res) =>{
             })
         }
         res.status(200).json({
-            message: "music created",
+            message: "Album created",
             album:{
                 id: album._id,
                 title: album.title,
@@ -89,4 +89,43 @@ const getAllmusic = async (req,res) =>{
     }
 }
 
-export {createMusic, createAlbum , getAllmusic}
+const getAllalbums = async(req,res) =>{
+    try {
+        const album = await Album.find().select("title artist").populate("musics", "username email")
+
+        return res.status(200).json({
+            message: "Albums fetched",
+            albums: album
+        })
+    } catch (error) {
+        return res.status(401).json({
+            message: "Error in fetching albums",
+            error: error.message
+        })
+    }
+}
+
+const getAlbumById = async(req,res) =>{
+    try {
+        const albumId = req.params.albumId
+    
+        const album = await Album.findById(albumId).populate("artist", "username email")
+        
+        if (!album) {
+            return res.status(404).json({
+                message: "Album not found"
+            });
+        }
+        
+        return res.status(200).json({
+            "message" : "album fetched",
+            album: album
+        })
+    } catch (error) {
+        return res.status(500).json({
+            "message" : "error in fetching album ",
+        })
+    }
+}
+
+export {createMusic, createAlbum , getAllmusic, getAllalbums, getAlbumById}

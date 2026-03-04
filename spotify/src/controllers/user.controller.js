@@ -70,7 +70,7 @@ const loginUser = async (req,res)=>{
         userId: user._id,
         role: user.role
     }, process.env.JWT_SECRET, { expiresIn: "1d" });
-    res.cookie("accessToken", token, {
+    res.cookie("token", token, {
         httpOnly: true,
         secure: false
     });
@@ -81,4 +81,17 @@ const loginUser = async (req,res)=>{
     });
 }
 
-export { registerUser, loginUser }
+const logout = async (req,res)=>{
+    try {
+        res.clearCookie("token")
+        return res.status(200).json({
+            message: "User logged out successfully"
+        });
+    } catch (error) {
+        return res.status(400).json({
+            message: "Error in logout"
+        });
+    }
+}
+
+export { registerUser, loginUser, logout}
