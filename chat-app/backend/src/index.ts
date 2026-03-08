@@ -2,6 +2,7 @@ import { WebSocket, WebSocketServer } from "ws";
 
 const wss = new WebSocketServer({ port: 8080});
 
+// interface - defines the shape of each connected user
 interface User{
     socket: WebSocket, // WebSocket connection for that user - represents the live connection between the server and that client.
     room: String
@@ -9,10 +10,11 @@ interface User{
 
 let allSockts: User[] = [] 
 // store all the sockets with their roomId
+// socket parameter - client's unique connection
 wss.on("connection", function(socket){
-    // whenever socket connects it will recieve a msg from the server
+    // whenever socket connects it will recieve a msg from the server (sent by that specific client)
     socket.on("message", (message)=>{
-        // pasre - Converts json string into an object.
+        // pasre - Converts json string into an object. (The client sends JSON strings, so we parse them into JavaScript objects.)
         // @ts-ignore
         
         const parsedmsg = JSON.parse(message)
@@ -49,4 +51,15 @@ wss.on("connection", function(socket){
             }
         }
     })
+    socket.on("close", () => {
+        allSockts = allSockts.filter(user => user.socket !== socket);
+        console.log("User disconnected, remaining users:", allSockts.length);
+    });
+
+    /*
+        "close" event fires automatically when the connection is broken.
+        user closes the browser tab/ browser /User's internet goes down
+        Client code calls socket.close()
+        User navigates to another page
+    */
 })
