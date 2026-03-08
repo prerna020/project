@@ -1,9 +1,9 @@
-import Chat from "../components/Chat"
+import Landing from "./components/Landing"
 
 const App = () => {
   return (
     <div>
-      <Chat/>
+      <Landing/>
     </div>
   )
 }
