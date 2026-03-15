@@ -1,13 +1,15 @@
 import { router, publicProcedure } from "./trpc";
 import {z} from "zod";
+import { createHTTPServer } from '@trpc/server/adapters/standalone';
+
 
 // query -> just reads the data, can't change anything (get)
 // mutation -> can change data (post, put, delete)
 
-type Todo = {id: number, task: string, done: boolean}
+type Todo = {id: number, task: string,description: string, done: boolean}
 let todos: Todo[] = []
 let nextId= 1;
-
+console.log("hi")
 export const appRouter = router({
     // get all todo
     list: publicProcedure.query(()=>{
@@ -16,9 +18,9 @@ export const appRouter = router({
 
     // add todo
     add: publicProcedure
-        .input(z.object({task: z.string().min(1)})) // validate input
+        .input(z.object({task: z.string().min(1), description: z.string()})) // validate input
         .mutation(({input}) => {
-            const todo = {id: nextId++, task: input.task, done: false};
+            const todo = {id: nextId++, task: input.task,description: input.description, done: false};
             todos.push(todo);
             return todo
         }),
@@ -39,6 +41,13 @@ export const appRouter = router({
             return { success: true };
         })
 })
+
+const server = createHTTPServer({
+  router: appRouter,
+});
+ 
+server.listen(3000);
+
 export type AppRouter = typeof appRouter
 
 /*
