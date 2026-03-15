@@ -4,6 +4,7 @@ import type { AppRouter } from '../server/index';
 
 // Pass AppRouter as a type parameter. This lets `trpc` know
 // what procedures are available on the server and their input/output types.
+
 const trpc = createTRPCClient<AppRouter>({
   links: [
     httpBatchLink({
@@ -13,8 +14,8 @@ const trpc = createTRPCClient<AppRouter>({
 });
 
 async function main() {
-    let response = await trpc.add.mutate({
-        task: "go to gym",
+    let response = await trpc.createTodo.mutate({
+        title: "go to gym",
         description: "every morning"
     })
     console.log(response)
