@@ -1,5 +1,5 @@
 import { router, publicProcedure } from "./trpc";
-import {z} from "zod";
+import {email, z} from "zod";
 import { createHTTPServer } from '@trpc/server/adapters/standalone';
 
 
@@ -26,39 +26,37 @@ export const appRouter = router({
                 id:"1"
             }
         }),
+
+    signup: publicProcedure
+        .input(z.object({
+            email: z.string(),
+            password: z.string()
+        }))
+        .mutation(async (opts)=>{
+            let email = opts.input.email
+            let password = opts.input.password
+
+            // db
+
+            let token = "1234124"
+            return {
+                token
+            }
+        } )
 })
 
 const server = createHTTPServer({
   router: appRouter,
+  createContext(opts){
+    let authHeader = opts.req.headers["authorization"]
+    console.log(authHeader)
+    // jwt verify()
+    return {
+        username : "xyz"
+    }
+  }
 });
  
 server.listen(3000);
 
 export type AppRouter = typeof appRouter
-
-/*
-app cant send real code 
-how frontend what to endpoints exists  
-type - This creates a type-only description — like a blueprint with no actual code:
-
-
-typeof appRouter extracts THIS information:     
-                                                
-{                                               
-list:                                         
-    input: void (nothing)                       
-    output: { id: number, task: string, done: boolean }[]                 
-                                                
-add:                                          
-    input: { task: string }                     
-    output: { id: number, task: string,done: boolean }                   
-                                                
-toogle:                                       
-    input: { id: number }                       
-    output: { id: number, task: string, done: boolean } | undefined       
-                                                
-remove:                                       
-    input: { id: number }                       
-    output: { success: boolean }                
-}
-*/
