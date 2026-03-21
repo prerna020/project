@@ -48,7 +48,6 @@ const Landing = ({onJoin}:LandingProps) => {
           </form>
           <div className="text-center justify-center bg-[#607785] mt-5 p-4 cursor-pointer hover:bg-[#404859] rounded">
               <button onClick={(e)=>{
-                e.preventDefault()
                 handleJoin()
               }}> Join Room</button>
           </div>
