@@ -16,6 +16,12 @@ export default function App() {
   const wsRef = useRef<WebSocket | null>(null);
 
   const handleJoin = (room: string, user: string) => {
+    // Logic: If there is already an active WebSocket connection, we should close it first
+    // to prevent multiple connections from the same client (e.g., if the user double-clicks 'Join').
+    if (wsRef.current) {
+      wsRef.current.close();
+    }
+
     const ws = new WebSocket("ws://localhost:8080");
     wsRef.current = ws;
 
@@ -34,7 +40,12 @@ export default function App() {
     };
 
     ws.onmessage = (event) => {
+      // Logic: The backend sends a stringified JSON of the message.
+      // We parse this JSON string back into a Message object so React can use it.
       const data: Message = JSON.parse(event.data);
+      
+      // We append the new incoming message to the existing list of messages.
+      // Because this state update triggers a re-render, the new message will appear on the Chat UI for this user.
       setMessages((prev) => [...prev, data]);
     };
 
@@ -52,6 +63,7 @@ export default function App() {
 
   const handleLeave = () => {
     wsRef.current?.close();
+    wsRef.current = null;
     setMessages([]);
     setJoined(false);
   };
