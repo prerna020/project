@@ -2,20 +2,18 @@ import { WebSocket, WebSocketServer } from "ws";
 
 const wss = new WebSocketServer({ port: 8080 });
 
-// interface - defines the shape of each connected user
 interface User {
-    socket: WebSocket, // WebSocket connection for that user - represents the live connection between the server and that client.
+    socket: WebSocket, 
     room: String,
     username: string;
 }
 
 let allSockts: User[] = []
-// store all the sockets with their roomId
-// socket parameter - client's unique connection
+
 wss.on("connection", function (socket) {
-    // whenever socket connects it will recieve a msg from the server (sent by that specific client)
+    
     socket.on("message", (message) => {
-        // pasre - Converts json string into an object. (The client sends JSON strings, so we parse them into JavaScript objects.)
+       
         const parsedmsg = JSON.parse(message.toString())
         if (parsedmsg.type == 'join') {
             console.log("User wants to join the room " + parsedmsg.payload.roomId)
@@ -49,17 +47,14 @@ wss.on("connection", function (socket) {
 
             // Loop through all connected sockets (users)
             for (const user of allSockts) {
-                // Logic: If the socket's room matches the sender's room, we broadcast the message to them.
-                // This ensures messages are only received by users inside the same room.
+                
                 if (user.room === currentUserRoom) {
-                    // Prepare the message payload with sender's details and timestamp
                     const outgoing = JSON.stringify({
                         username: sender.username,
                         message: parsedmsg.payload.message,
                         timestamp: new Date().toISOString(),
                     });
 
-                    // Actually send the stringified payload to the user's socket connection
                     user.socket.send(outgoing);
                 }
             }

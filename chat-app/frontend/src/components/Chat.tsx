@@ -28,12 +28,12 @@ const Chat = ({ roomId, username, messages, onSend, onLeave }: Props) => {
   
   return (
     <div className=' flex flex-col h-screen bg-black text-white'>
-      <div className=' flex bg-zinc-400 w-full h-20 justify-between p-6'>
+      <div className=' flex bg-zinc-600 w-full h-20 justify-between p-6'>
         <div className='font-bold text-2xl'>Room-Id: {roomId}, @{username}</div>
-        <div>Connected</div>
+
         <button
           onClick={onLeave}
-          className="bg-red-600 hover:bg-red-700 text-white px-4 py-1.5 rounded text-sm"
+          className="bg-red-400 hover:bg-red-500 text-black px-4 py-1 rounded text-m shadow-2xl"
         >
           Leave
         </button>
@@ -60,7 +60,7 @@ const Chat = ({ roomId, username, messages, onSend, onLeave }: Props) => {
             </div>
           );
         })}
-        <div ref={bottomRef} /> {/* ✅ scroll anchor */}
+        <div ref={bottomRef} />
       </div>
 
       
@@ -73,13 +73,13 @@ const Chat = ({ roomId, username, messages, onSend, onLeave }: Props) => {
             type="text"
             value={text}
             onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSend()} // enter to send
+            onKeyDown={(e) => e.key === "Enter" && handleSend()} 
             placeholder="Message..."
             className="flex-1 p-3 rounded-2xl bg-zinc-700 text-white placeholder-zinc-400"
           />
           <button
             onClick={handleSend}
-            className="bg-blue-600 hover:bg-blue-700 px-5 py-3 rounded-2xl"
+            className="bg-blue-500 hover:bg-blue-600 px-5 py-3 rounded-2xl"
           >
             Send
           </button>

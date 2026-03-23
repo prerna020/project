@@ -21,7 +21,7 @@ const Landing = ({onJoin}:LandingProps) => {
           <h1 className=" font-bold">Chat App</h1>
           <p >Join room and start chatting!</p>
         </div>
-        
+
         <div>
           <form> 
             <div className="flex flex-col">
@@ -46,11 +46,11 @@ const Landing = ({onJoin}:LandingProps) => {
               </label>
             </div>
           </form>
-          <div className="text-center justify-center bg-[#607785] mt-5 p-4 cursor-pointer hover:bg-[#404859] rounded">
-              <button onClick={(e)=>{
+          <button className="text-center w-full justify-center bg-[#607785] mt-5 p-4 cursor-pointer hover:bg-[#404859] rounded"
+              onClick={()=>{
                 handleJoin()
-              }}> Join Room</button>
-          </div>
+              }}> Join Room
+          </button>
         </div>
       </div>
     </div>
