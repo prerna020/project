@@ -1,6 +1,6 @@
 from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
-from langchain.agents import create_agent
-from langchain_core.prompts import ChatPromptTemplate
+from langchain.agents import create_react_agent, AgentExecutor
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 from tools import web_search, scrape_url 
@@ -15,21 +15,49 @@ llm = HuggingFaceEndpoint(
 
 model = ChatHuggingFace(llm=llm)
 
+react_template = '''Answer the following questions as best you can. You have access to the following tools:
+
+{tools}
+
+Use the following format:
+
+Question: the input question you must answer
+Thought: you should always think about what to do
+Action: the action to take, should be one of [{tool_names}]
+Action Input: the input to the action
+Observation: the result of the action
+... (this Thought/Action/Action Input/Observation can repeat N times)
+Thought: I now know the final answer
+Final Answer: the final answer to the original input question
+
+Begin!
+
+Question: {input}
+Thought:{agent_scratchpad}'''
+
+react_prompt = PromptTemplate.from_template(react_template)
+
 # 1st agent
 
 def build_search_agent():
-    return create_agent(
-        model = model,
-        tools = [web_search]
+    tools = [web_search]
+    agent = create_react_agent(
+        llm = model,
+        tools = tools,
+        prompt = react_prompt
     )
+    return AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
 
 # 2nd agent
 
 def build_reader_agent():
-    return create_agent(
-        model = model,
-        tools = [scrape_url]
+    tools = [scrape_url]
+    agent = create_react_agent(
+        llm = model,
+        tools = tools,
+        prompt = react_prompt
     )
+    return AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)
 
 prompt = ChatPromptTemplate.from_messages([
     ("system", "You are an expert research writer. Write clear, structured and insightful reports."),
