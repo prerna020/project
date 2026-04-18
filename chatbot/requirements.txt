@@ -10,3 +10,4 @@ python-dotenv>=1.0.1
 
 # Optional but useful (recommended for stability)
 tiktoken>=0.7.0
+langchain-groq
