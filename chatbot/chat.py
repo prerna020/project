@@ -4,6 +4,7 @@ from langchain_core.messages import BaseMessage, HumanMessage
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph.message import add_messages
+from langgraph.checkpoint.memory import InMemorySaver
 
 load_dotenv()
 
@@ -22,6 +23,7 @@ def chat_node(state: ChatState):
 
     return {'messages': [response]}
 
+checkpointer = InMemorySaver()
 
 graph = StateGraph(ChatState)
 
@@ -29,4 +31,4 @@ graph.add_node('chat_node', chat_node)
 graph.add_edge(START, 'chat_node')
 graph.add_edge('chat_node', END)
 
-chatbot = graph.compile()
+chatbot = graph.compile(checkpointer= checkpointer)
