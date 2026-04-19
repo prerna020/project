@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import InMemorySaver
+from langchain_core.runnables import RunnableConfig
 
 load_dotenv()
 
@@ -16,10 +17,10 @@ class ChatState(TypedDict):
 
 
 
-def chat_node(state: ChatState):
+def chat_node(state: ChatState, config: RunnableConfig):
 
     messages = state['messages']
-    response = llm.invoke(messages)
+    response = llm.invoke(messages, config=config)
 
     return {'messages': [response]}
 
