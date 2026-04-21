@@ -11,6 +11,32 @@ config = {
 if 'message_history' not in st.session_state:
     st.session_state['message_history'] = []
 
+
+
+st.sidebar.title('Chatbot')
+
+st.sidebar.button('New Chat')
+
+st.sidebar.header('Recents')
+
+for thread_id in st.session_state['chat_threads'][::-1]:
+    if st.sidebar.button(str(thread_id)):
+        st.session_state['thread_id'] = thread_id
+        messages = load_conversation(thread_id)
+
+        temp_messages = []
+
+        for msg in messages:
+            if isinstance(msg, HumanMessage):
+                role='user'
+            else:
+                role='assistant'
+            temp_messages.append({'role': role, 'content': msg.content})
+
+        st.session_state['message_history'] = temp_messages
+
+
+
 # loading the conversation history
 for message in st.session_state['message_history']:
     with st.chat_message(message['role']):
