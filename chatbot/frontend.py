@@ -16,21 +16,21 @@ def generate_thread_id():
 def reset_chat():
     thread_id = generate_thread_id()
     st.session_state['thread_id'] = thread_id
-    add_thread(st.session_state['thread_id'])
-    st.session_state['message_history'] = []
+    addThread(st.session_state['thread_id'])
+    st.session_state['msgHistory'] = []
 
-def add_thread(thread_id):
+def addThread(thread_id):
     if thread_id not in st.session_state['chat_threads']:
         st.session_state['chat_threads'].append(thread_id)
 
-def load_conversation(thread_id):
+def loadConversation(thread_id):
     state = chatbot.get_state(config={'configurable': {'thread_id': thread_id}})
     # Check if messages key exists in state values, return empty list if not
     return state.values.get('messages', [])
 
 
-if 'message_history' not in st.session_state:
-    st.session_state['message_history'] = []
+if 'msgHistory' not in st.session_state:
+    st.session_state['msgHistory'] = []
 
 
 
@@ -40,7 +40,7 @@ st.sidebar.header('Recents')
  
 
 # loading the conversation history
-for message in st.session_state['message_history']:
+for message in st.session_state['msgHistory']:
     with st.chat_message(message['role']):
         st.text(message['content'])
 
@@ -49,17 +49,18 @@ for message in st.session_state['message_history']:
 
 user_input = st.chat_input('Ask anything...')
 
+
 if user_input:
 
-    # first add the message to message_history
-    st.session_state['message_history'].append({'role': 'user', 'content': user_input})
+    # first add the message to msgHistory
+    st.session_state['msgHistory'].append({'role': 'user', 'content': user_input})
     with st.chat_message('user'):
         st.text(user_input)
 
-    # first add the message to message_history
+    # first add the message to msgHistory
     with st.chat_message('assistant'):
 
-        ai_message = st.write_stream(
+        aiMsg = st.write_stream(
             message_chunk.content for message_chunk, metadata in chatbot.stream(
                 {'messages': [HumanMessage(content=user_input)]},
                 config= {'configurable': {'thread_id': 'thread-1'}},
@@ -67,4 +68,4 @@ if user_input:
             )
         )
 
-    st.session_state['message_history'].append({'role': 'assistant', 'content': ai_message})
+    st.session_state['msgHistory'].append({'role': 'assistant', 'content': aiMsg})
