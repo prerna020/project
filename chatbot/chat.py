@@ -4,8 +4,9 @@ from langchain_core.messages import BaseMessage, HumanMessage
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph.message import add_messages
-from langgraph.checkpoint.memory import InMemorySaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 from langchain_core.runnables import RunnableConfig
+import sqlite3
 
 load_dotenv()
 
@@ -24,7 +25,8 @@ def chat_node(state: ChatState, config: RunnableConfig):
 
     return {'messages': [response]}
 
-checkpointer = InMemorySaver()
+connection = sqlite3.connect(database="chatbot.db", check_same_thread=False)
+checkpointer = SqliteSaver(conn=connection)
 
 graph = StateGraph(ChatState)
 
@@ -33,3 +35,18 @@ graph.add_edge(START, 'chat_node')
 graph.add_edge('chat_node', END)
 
 chatbot = graph.compile(checkpointer= checkpointer)
+
+CONFIG = {
+    'configurable':{'thread_id': 'thread-1'}
+}
+
+# res = chatbot.invoke({'messages': [HumanMessage(content="Hello, how are you?")]}, config=CONFIG)
+# print(res)
+
+def retrieveThread():
+    allThread = set()
+    for checkpoint in checkpointer.list(None):
+        threadID = checkpoint.config['configurable']['thread_id']
+        allThread.add(threadID)
+    
+    return allThread

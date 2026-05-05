@@ -1,13 +1,13 @@
 import streamlit as st
-from chat import chatbot
+from chat import chatbot, retrieveThread
 from langchain_core.messages import HumanMessage
 import uuid
 
-config = {
-    'configurable': {
-        'thread_id': 'thread-1'
-    }
-}
+# config = {
+#     'configurable': {
+#         'thread_id': 'thread-1'
+#     }
+# }
 
 def generate_thread_id():
     thread_id = uuid.uuid4()
@@ -36,7 +36,7 @@ if 'thread_id' not in st.session_state:
     st.session_state['thread_id'] = generate_thread_id()
 
 if 'chat_threads' not in st.session_state:
-    st.session_state['chat_threads'] = []
+    st.session_state['chat_threads'] = list(retrieveThread())
 
 addThread(st.session_state['thread_id'])
 
@@ -85,13 +85,21 @@ if user_input:
     with st.chat_message('user'):
         st.text(user_input)
 
+    CONFIG = {
+        "configurable": {"thread_id": st.session_state["thread_id"]},
+        "metadata": {
+            "thread_id": st.session_state["thread_id"]
+        },
+        "run_name": "chat_turn",
+    }
+
     # first add the message to msgHistory
     with st.chat_message('assistant'):
 
         aiMsg = st.write_stream(
             message_chunk.content for message_chunk, metadata in chatbot.stream(
                 {'messages': [HumanMessage(content=user_input)]},
-                config= {'configurable': {'thread_id': 'thread-1'}},
+                config=CONFIG,
                 stream_mode= 'messages'
             )
         )
