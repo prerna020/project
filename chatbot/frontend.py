@@ -1,6 +1,6 @@
 import streamlit as st
 from chat import chatbot, retrieveThread
-from langchain_core.messages import HumanMessage
+from langchain_core.messages import HumanMessage, AIMessage
 import uuid
 
 # config = {
@@ -95,13 +95,15 @@ if user_input:
 
     # first add the message to msgHistory
     with st.chat_message('assistant'):
-
-        aiMsg = st.write_stream(
-            message_chunk.content for message_chunk, metadata in chatbot.stream(
+        def ai_only_stream():
+            for message_chunk, metadata in chatbot.stream(
                 {'messages': [HumanMessage(content=user_input)]},
                 config=CONFIG,
                 stream_mode= 'messages'
-            )
-        )
+            ):
+              if isinstance(message_chunk, AIMessage) and message_chunk.content: 
+                yield message_chunk.content
+
+        aiMsg = st.write_stream(ai_only_stream())
 
     st.session_state['msgHistory'].append({'role': 'assistant', 'content': aiMsg})

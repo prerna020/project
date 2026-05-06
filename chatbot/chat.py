@@ -8,6 +8,8 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool
 from langchain_community.tools import DuckDuckGoSearchRun
+from langgraph.prebuilt import ToolNode
+from ddgs import DDGS
 import sqlite3
 import requests
 
@@ -15,7 +17,6 @@ load_dotenv()
 
 llm = ChatGroq(model="llama-3.3-70b-versatile")
 
-# tools
 search_tool = DuckDuckGoSearchRun(region="us-en")
 
 @tool
@@ -56,7 +57,8 @@ def get_stock_price(symbol: str) -> dict:
     except Exception as e:
         return {"error": str(e)}
 
-
+tools = [search_tool, calculator, get_stock_price]
+llm_with_tools = llm.bind_tools(tools)
 
 class ChatState(TypedDict): 
     messages: Annotated[list[BaseMessage], add_messages]
@@ -66,18 +68,33 @@ class ChatState(TypedDict):
 def chat_node(state: ChatState, config: RunnableConfig):
 
     messages = state['messages']
-    response = llm.invoke(messages, config=config)
+    response = llm_with_tools.invoke(messages, config=config)
 
     return {'messages': [response]}
+
+
+def should_continue(state: ChatState):
+    """Route to tool_node if the last message has tool calls, otherwise end."""
+    last_message = state['messages'][-1]
+    if hasattr(last_message, 'tool_calls') and last_message.tool_calls:
+        return 'tool_node'
+    return END
+
 
 connection = sqlite3.connect(database="chatbot.db", check_same_thread=False)
 checkpointer = SqliteSaver(conn=connection)
 
+# Create a ToolNode that can execute all our tools
+tool_node = ToolNode(tools)
+
 graph = StateGraph(ChatState)
 
 graph.add_node('chat_node', chat_node)
+graph.add_node('tool_node', tool_node)
+
 graph.add_edge(START, 'chat_node')
-graph.add_edge('chat_node', END)
+graph.add_conditional_edges('chat_node', should_continue, {'tool_node': 'tool_node', END: END})
+graph.add_edge('tool_node', 'chat_node')  # after tool execution, go back to LLM
 
 chatbot = graph.compile(checkpointer= checkpointer)
 
