@@ -6,11 +6,56 @@ from langchain_groq import ChatGroq
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.sqlite import SqliteSaver
 from langchain_core.runnables import RunnableConfig
+from langchain_core.tools import tool
+from langchain_community.tools import DuckDuckGoSearchRun
 import sqlite3
+import requests
 
 load_dotenv()
 
 llm = ChatGroq(model="llama-3.3-70b-versatile")
+
+# tools
+search_tool = DuckDuckGoSearchRun(region="us-en")
+
+@tool
+def calculator(first_num: float, second_num: float, operation: str) -> dict:
+    """
+    Perform a basic arithmetic operation on two numbers.
+    Supported operations: add, sub, mul, div
+    """
+    try:
+        if operation == "add":
+            result = first_num + second_num
+        elif operation == "sub":
+            result = first_num - second_num
+        elif operation == "mul":
+            result = first_num * second_num
+        elif operation == "div":
+            if second_num == 0:
+                return {"error": "Division by zero is not allowed"}
+            result = first_num / second_num
+        else:
+            return {"error": f"Unsupported operation '{operation}'"}
+        
+        return {"first_num": first_num, "second_num": second_num, "operation": operation, "result": result}
+    except Exception as e:
+        return {"error": str(e)}
+
+
+@tool
+def get_stock_price(symbol: str) -> dict:
+    """
+    Fetch the current stock price for a given symbol using a public API.
+    """
+    try:
+        api_url = f"https://finnhub.io/api/v1/quote?symbol={symbol}&token"
+        response = requests.get(api_url)
+        data = response.json()
+        return {"symbol": symbol, "price": data.get("c")}
+    except Exception as e:
+        return {"error": str(e)}
+
 
 
 class ChatState(TypedDict): 
