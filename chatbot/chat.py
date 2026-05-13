@@ -1,6 +1,6 @@
 from langgraph.graph import StateGraph, START, END
 from typing import TypedDict, Annotated, Dict, Any, Optional
-from langchain_core.messages import BaseMessage, HumanMessage
+from langchain_core.messages import BaseMessage, HumanMessage, SystemMessage
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 from langgraph.graph.message import add_messages
@@ -124,6 +124,31 @@ def get_stock_price(symbol: str) -> dict:
     except Exception as e:
         return {"error": str(e)}
 
+
+@tool
+def rag_tool(query: str, thread_id: Optional[str] = None) -> dict:
+    """
+    Retrieve relevant information from the uploaded PDF for this chat thread.
+    Always include the thread_id when calling this tool.
+    """
+    retriever = get_retriever(thread_id)
+    if retriever is None:
+        return {
+            "error": "No document indexed for this chat. Upload a PDF first.",
+            "query": query,
+        }
+
+    result = retriever.invoke(query)
+    context = [doc.page_content for doc in result]
+    metadata = [doc.metadata for doc in result]
+
+    return {
+        "query": query,
+        "context": context,
+        "metadata": metadata,
+        "source_file": thread_metadata.get(str(thread_id), {}).get("filename"),
+    }
+
 tools = [search_tool, calculator, get_stock_price]
 llm_with_tools = llm.bind_tools(tools)
 
@@ -133,8 +158,21 @@ class ChatState(TypedDict):
 
 
 def chat_node(state: ChatState, config: RunnableConfig):
+    """LLM node that may answer or request a tool call."""
+    thread_id = None
+    if config and isinstance(config, dict):
+        thread_id = config.get("configurable", {}).get("thread_id")
 
-    messages = state['messages']
+    system_message = SystemMessage(
+        content=(
+            "You are a helpful assistant. For questions about the uploaded PDF, call "
+            "the `rag_tool` and include the thread_id "
+            f"`{thread_id}`. You can also use the web search, stock price, and "
+            "calculator tools when helpful. If no document is available, ask the user "
+            "to upload a PDF."
+        )
+    )
+    messages = [system_message, *state["messages"]]
     response = llm_with_tools.invoke(messages, config=config)
 
     return {'messages': [response]}
@@ -160,8 +198,8 @@ graph.add_node('chat_node', chat_node)
 graph.add_node('tool_node', tool_node)
 
 graph.add_edge(START, 'chat_node')
-graph.add_conditional_edges('chat_node', should_continue, {'tool_node': 'tool_node', END: END})
-graph.add_edge('tool_node', 'chat_node')  # after tool execution, go back to LLM
+graph.add_conditional_edges('chat_node', tools_condition)
+graph.add_edge('tools', 'chat_node')  # after tool execution, go back to LLM
 
 chatbot = graph.compile(checkpointer= checkpointer)
 
@@ -179,3 +217,11 @@ def retrieveThread():
         allThread.add(threadID)
     
     return allThread
+
+
+def thread_has_document(thread_id: str) -> bool:
+    return str(thread_id) in thread_retrivers
+
+
+def thread_document_metadata(thread_id: str) -> dict:
+    return thread_metadata.get(str(thread_id), {})
