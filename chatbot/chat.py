@@ -9,35 +9,12 @@ from langchain_core.runnables import RunnableConfig
 from langchain_core.tools import tool, BaseTool
 from langchain_community.tools import DuckDuckGoSearchRun
 from langgraph.prebuilt import ToolNode, tools_condition
-from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
-from langchain_mcp_adapters.client import MultiServerMCPClient
 from ddgs import DDGS
 import sqlite3
 import requests
-import aiosqlite
-import asyncio
-import threading
-
 load_dotenv()
 
 llm = ChatGroq(model="llama-3.3-70b-versatile")
-
-async_loop = asyncio.new_event_loop()
-async_thread = threading.Thread(target=async_loop.run_forever, daemon= True)
-async_thread.start()
-
-
-
-def submit_async(coro):
-    return asyncio.run_coroutine_threadsafe(coro, async_loop)
-
-def run_async(coro):
-    return submit_async(coro).result()
-
-def submit_async_task(coro):
-    "Schedule a coroutine one the backend event loop."
-    return submit_async(coro)
-
 
 
 search_tool = DuckDuckGoSearchRun(region="us-en")
