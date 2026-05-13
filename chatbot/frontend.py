@@ -85,21 +85,21 @@ else:
         if st.sidebar.button(str(thread_id), key=f"side-thread-{thread_id}"):
             selected_thread = thread_id
 
-for thread_id in st.session_state['chat_threads'][::-1]:
-    if st.sidebar.button(str(thread_id)):
-        st.session_state['thread_id'] = thread_id
-        messages = loadConversation(thread_id)
+# for thread_id in st.session_state['chat_threads'][::-1]:
+#     if st.sidebar.button(str(thread_id)):
+#         st.session_state['thread_id'] = thread_id
+#         messages = loadConversation(thread_id)
 
-        temp_messages = []
+#         temp_messages = []
 
-        for msg in messages:
-            if isinstance(msg, HumanMessage):
-                role='user'
-            else:
-                role='assistant'
-            temp_messages.append({'role': role, 'content': msg.content})
+#         for msg in messages:
+#             if isinstance(msg, HumanMessage):
+#                 role='user'
+#             else:
+#                 role='assistant'
+#             temp_messages.append({'role': role, 'content': msg.content})
 
-        st.session_state['msgHistory'] = temp_messages
+#         st.session_state['msgHistory'] = temp_messages
 
 
 
@@ -143,4 +143,24 @@ if user_input:
         aiMsg = st.write_stream(ai_only_stream())
 
     st.session_state['msgHistory'].append({'role': 'assistant', 'content': aiMsg})
-    
+
+    doc_meta = thread_document_metadata(thread_key)
+    if doc_meta:
+        st.caption(
+            f"Document indexed: {doc_meta.get('filename')} "
+            f"(chunks: {doc_meta.get('chunks')}, pages: {doc_meta.get('documents')})"
+        )
+
+st.divider()
+
+if selected_thread:
+    st.session_state["thread_id"] = selected_thread
+    messages = loadConversation(selected_thread)
+
+    temp_messages = []
+    for msg in messages:
+        role = "user" if isinstance(msg, HumanMessage) else "assistant"
+        temp_messages.append({"role": role, "content": msg.content})
+    st.session_state["message_history"] = temp_messages
+    st.session_state["ingested_docs"].setdefault(str(selected_thread), {})
+    st.rerun()
