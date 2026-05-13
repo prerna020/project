@@ -1,5 +1,5 @@
 from langgraph.graph import StateGraph, START, END
-from typing import TypedDict, Annotated
+from typing import TypedDict, Annotated, Dict, Any, Optional
 from langchain_core.messages import BaseMessage, HumanMessage
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
@@ -12,10 +12,77 @@ from langgraph.prebuilt import ToolNode, tools_condition
 from ddgs import DDGS
 import sqlite3
 import requests
+import tempfile
+import os
+
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_community.document_loaders import PyPDFLoader
+from langchain_community.vectorstores import FAISS
+
+
+
 load_dotenv()
 
 llm = ChatGroq(model="llama-3.3-70b-versatile")
+# embeedings = // embeedings model
 
+thread_retrivers: Dict[str, Any] = {}
+thread_metadata : Dict[str, dict] = {}
+
+def get_retriever(thread_id: Optional[str]):
+    """Fetch the retriever for a thread if available."""
+    if thread_id and thread_id in thread_retrivers:
+        return thread_retrivers[thread_id]
+    return None
+
+
+def ingest_pdf(file_bytes: bytes, thread_id: str, filename: Optional[str] = None) -> dict:
+    """
+    Build a FAISS retriever for the uploaded PDF and store it for the thread.
+    Returns a summary dict that can be surfaced in the UI.
+    """
+    if not file_bytes:
+        raise ValueError("No bytes received for ingestion.")
+
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
+        temp_file.write(file_bytes)
+        temp_path = temp_file.name
+
+    try:
+        loader = PyPDFLoader(temp_path)
+        docs = loader.load()
+        splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000, chunk_overlap=200, separators=["\n\n", "\n", " ", ""]
+        )
+        chunks = splitter.split_documents(docs)
+
+        vector_store = FAISS.from_documents(chunks, embeddings)
+        retriever = vector_store.as_retriever(
+            search_type="similarity", search_kwargs={"k": 4}
+        )
+
+        thread_retrivers[str(thread_id)] = retriever
+        thread_retrivers[str(thread_id)] = {
+            "filename": filename or os.path.basename(temp_path),
+            "documents": len(docs),
+            "chunks": len(chunks),
+        }
+
+        return {
+            "filename": filename or os.path.basename(temp_path),
+            "documents": len(docs),
+            "chunks": len(chunks),
+        }
+    finally:
+        # The FAISS store keeps copies of the text, so the temp file is safe to remove.
+        try:
+            os.remove(temp_path)
+        except OSError:
+            pass
+
+
+
+# tools
 
 search_tool = DuckDuckGoSearchRun(region="us-en")
 
