@@ -1,5 +1,5 @@
 import streamlit as st
-from chat import chatbot, retrieveThread
+from chat import chatbot, retrieveThread, ingest_pdf, thread_document_metadata
 from langchain_core.messages import HumanMessage, AIMessage
 import uuid
 
@@ -38,16 +38,52 @@ if 'thread_id' not in st.session_state:
 if 'chat_threads' not in st.session_state:
     st.session_state['chat_threads'] = list(retrieveThread())
 
+if "ingested_docs" not in st.session_state:
+    st.session_state["ingested_docs"] = {}
+
 addThread(st.session_state['thread_id'])
 
-
+thread_key = str(st.session_state["thread_id"])
+thread_docs = st.session_state["ingested_docs"].setdefault(thread_key, {})
+threads = st.session_state["chat_threads"][::-1]
+selected_thread = None
 
 
 st.sidebar.title('Chatbot')
-if st.sidebar.button('New Chat'):
+if st.sidebar.button('New Chat', use_container_width=True):
     reset_chat()
+    st.rerun()
+
+if thread_docs:
+    latest_doc = list(thread_docs.values())[-1]
+    st.sidebar.success(
+        f"Using `{latest_doc.get('filename')}` "
+        f"({latest_doc.get('chunks')} chunks from {latest_doc.get('documents')} pages)"
+    )
+else:
+    st.sidebar.info("No PDF indexed yet.")
+
+uploaded_pdf = st.sidebar.file_uploader("Upload a PDF for this chat", type=["pdf"])
+if uploaded_pdf:
+    if uploaded_pdf.name in thread_docs:
+        st.sidebar.info(f"`{uploaded_pdf.name}` already processed for this chat.")
+    else:
+        with st.sidebar.status("Indexing PDF…", expanded=True) as status_box:
+            summary = ingest_pdf(
+                uploaded_pdf.getvalue(),
+                thread_id=thread_key,
+                filename=uploaded_pdf.name,
+            )
+            thread_docs[uploaded_pdf.name] = summary
+            status_box.update(label="PDF indexed check", state="complete", expanded=False)
+
 st.sidebar.header('Recents')
- 
+if not threads:
+    st.sidebar.write("No past conversations yet.")
+else:
+    for thread_id in threads:
+        if st.sidebar.button(str(thread_id), key=f"side-thread-{thread_id}"):
+            selected_thread = thread_id
 
 for thread_id in st.session_state['chat_threads'][::-1]:
     if st.sidebar.button(str(thread_id)):
@@ -100,10 +136,11 @@ if user_input:
                 {'messages': [HumanMessage(content=user_input)]},
                 config=CONFIG,
                 stream_mode= 'messages'
-            ):
+            ):            
               if isinstance(message_chunk, AIMessage) and message_chunk.content: 
                 yield message_chunk.content
 
         aiMsg = st.write_stream(ai_only_stream())
 
     st.session_state['msgHistory'].append({'role': 'assistant', 'content': aiMsg})
+    
