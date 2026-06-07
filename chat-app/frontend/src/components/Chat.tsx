@@ -85,6 +85,15 @@ const playSound = (type: "send" | "receive" | "click" | "join", enabled: boolean
     console.warn("Audio Context blocked:", error);
   }
 };
+const THEMES = [
+  { id: "indigo", name: "Cyber Indigo", rgb: "99, 102, 241", glow: "rgba(99, 102, 241, 0.2)" },
+  { id: "cyan", name: "Glitch Cyan", rgb: "6, 182, 212", glow: "rgba(6, 182, 212, 0.2)" },
+  { id: "rose", name: "Neon Rose", rgb: "244, 63, 94", glow: "rgba(244, 63, 94, 0.2)" },
+  { id: "emerald", name: "Matrix Green", rgb: "16, 185, 129", glow: "rgba(16, 185, 129, 0.2)" },
+  { id: "amber", name: "Solar Amber", rgb: "245, 158, 11", glow: "rgba(245, 158, 11, 0.2)" },
+];
+
+const QUICK_EMOJIS = ["👍", "❤️", "🔥", "😂", "😮", "🙌", "💡", "💯"];
 
 
 const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradient, avatarIcon }: Props) => {
