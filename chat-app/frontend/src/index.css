@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --font-outfit: 'Outfit', sans-serif;
+  --font-space: 'Space Grotesk', sans-serif;
+  
+  /* Preset Accent Colors (theme RGBs) */
+  --accent: 99, 102, 241;
+  --accent-glow: rgba(99, 102, 241, 0.2);
+}
+
+body {
+  font-family: var(--font-outfit);
+  background-color: #030308;
+  color: #f3f4f6;
+  margin: 0;
+  overflow: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, button, .font-title {
+  font-family: var(--font-space);
+  letter-spacing: -0.01em;
+}
