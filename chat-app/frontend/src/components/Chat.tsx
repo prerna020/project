@@ -5,15 +5,18 @@ interface Props {
   roomId: string;
   username: string;
   messages: Message[];
+  activeUsers: string[];
   onSend: (text: string) => void;
   onLeave: () => void;
   accent: string;
-  avatarGradient: string;
-  avatarIcon: string;
+  avatarGradient: string; // Serves as avatar background color
+  avatarIcon: string;     // Serves as avatar emblem
 }
 
-const EMBLEMS = ["⚡", "👾", "🪐", "🔮", "🔥", "💫", "🛡️", "👑", "🚀", "🛸"];
+const EMBLEMS = ["👤", "⚡", "☕", "💻", "✨", "🪐", "🔥", "🛠️", "⚙️", "🔒"];
+const AVATAR_COLORS = ["#10b981", "#0d9488", "#4f46e5", "#b45309", "#3f3f46", "#dc2626", "#0891b2"];
 
+// Web Audio API Synthesizer for retro UI sound effects
 const playSound = (type: "send" | "receive" | "click" | "join", enabled: boolean) => {
   if (!enabled) return;
   try {
@@ -24,25 +27,25 @@ const playSound = (type: "send" | "receive" | "click" | "join", enabled: boolean
       const gain = audioCtx.createGain();
       osc.type = "sine";
       osc.frequency.setValueAtTime(800, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
-      gain.gain.setValueAtTime(0.012, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+      osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.04);
+      gain.gain.setValueAtTime(0.008, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.05);
+      osc.stop(audioCtx.currentTime + 0.04);
     } else if (type === "send") {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.025, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(450, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(800, audioCtx.currentTime + 0.08);
+      gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.1);
+      osc.stop(audioCtx.currentTime + 0.08);
     } else if (type === "receive") {
       const osc1 = audioCtx.createOscillator();
       const osc2 = audioCtx.createOscillator();
@@ -50,14 +53,14 @@ const playSound = (type: "send" | "receive" | "click" | "join", enabled: boolean
       const gain2 = audioCtx.createGain();
       
       osc1.type = "sine";
-      osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
-      gain1.gain.setValueAtTime(0.015, audioCtx.currentTime);
-      gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+      osc1.frequency.setValueAtTime(700, audioCtx.currentTime);
+      gain1.gain.setValueAtTime(0.01, audioCtx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.06);
       
       osc2.type = "sine";
-      osc2.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.05);
-      gain2.gain.setValueAtTime(0.015, audioCtx.currentTime + 0.05);
-      gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      osc2.frequency.setValueAtTime(1000, audioCtx.currentTime + 0.04);
+      gain2.gain.setValueAtTime(0.01, audioCtx.currentTime + 0.04);
+      gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
       
       osc1.connect(gain1);
       gain1.connect(audioCtx.destination);
@@ -65,75 +68,55 @@ const playSound = (type: "send" | "receive" | "click" | "join", enabled: boolean
       gain2.connect(audioCtx.destination);
       
       osc1.start();
-      osc1.stop(audioCtx.currentTime + 0.1);
-      osc2.start(audioCtx.currentTime + 0.05);
-      osc2.stop(audioCtx.currentTime + 0.2);
+      osc1.stop(audioCtx.currentTime + 0.08);
+      osc2.start(audioCtx.currentTime + 0.04);
+      osc2.stop(audioCtx.currentTime + 0.16);
     } else if (type === "join") {
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
       osc.type = "sine";
-      osc.frequency.setValueAtTime(250, audioCtx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(650, audioCtx.currentTime + 0.2);
-      gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(550, audioCtx.currentTime + 0.15);
+      gain.gain.setValueAtTime(0.012, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
       osc.connect(gain);
       gain.connect(audioCtx.destination);
       osc.start();
-      osc.stop(audioCtx.currentTime + 0.2);
+      osc.stop(audioCtx.currentTime + 0.15);
     }
   } catch (error) {
     console.warn("Audio Context blocked:", error);
   }
 };
-const THEMES = [
-  { id: "indigo", name: "Cyber Indigo", rgb: "99, 102, 241", glow: "rgba(99, 102, 241, 0.2)" },
-  { id: "cyan", name: "Glitch Cyan", rgb: "6, 182, 212", glow: "rgba(6, 182, 212, 0.2)" },
-  { id: "rose", name: "Neon Rose", rgb: "244, 63, 94", glow: "rgba(244, 63, 94, 0.2)" },
-  { id: "emerald", name: "Matrix Green", rgb: "16, 185, 129", glow: "rgba(16, 185, 129, 0.2)" },
-  { id: "amber", name: "Solar Amber", rgb: "245, 158, 11", glow: "rgba(245, 158, 11, 0.2)" },
-];
 
 const QUICK_EMOJIS = ["👍", "❤️", "🔥", "😂", "😮", "🙌", "💡", "💯"];
 
-
-const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradient, avatarIcon }: Props) => {
+const Chat = ({ roomId, username, messages, activeUsers, onSend, onLeave, avatarGradient, avatarIcon }: Props) => {
   const [text, setText] = useState("");
   const [soundEnabled, setSoundEnabled] = useState(true);
-  const [currentTheme, setCurrentTheme] = useState(accent);
   const [showMobileSidebar, setShowMobileSidebar] = useState(false);
   
-  // Ref for local scrollTop manipulation
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Message tracker to check for sound chimes on fresh messages
   const prevMessagesCount = useRef(messages.length);
 
-  // Consistent Avatar generation for users in the chat
+  // Generate consistent color/emblem for participants
   const getAvatarForUser = (name: string) => {
     if (name === username) {
-      return { gradient: avatarGradient, emblem: avatarIcon };
+      return { color: avatarGradient, emblem: avatarIcon };
     }
     let hash = 0;
     for (let i = 0; i < name.length; i++) {
       hash = name.charCodeAt(i) + ((hash << 5) - hash);
     }
-    const hue1 = Math.abs(hash % 360);
-    const hue2 = Math.abs((hash + 65) % 360);
-    const emblem = EMBLEMS[Math.abs(hash) % EMBLEMS.length];
+    const colorIdx = Math.abs(hash) % AVATAR_COLORS.length;
+    const emblemIdx = Math.abs(hash) % EMBLEMS.length;
     return {
-      gradient: `linear-gradient(135deg, hsl(${hue1}, 75%, 60%), hsl(${hue2}, 75%, 50%))`,
-      emblem: emblem,
+      color: AVATAR_COLORS[colorIdx],
+      emblem: EMBLEMS[emblemIdx],
     };
   };
 
-  // Sync theme changes in real time
-  useEffect(() => {
-    const themeObj = THEMES.find((t) => t.id === currentTheme) || THEMES[0];
-    document.documentElement.style.setProperty("--accent", themeObj.rgb);
-    document.documentElement.style.setProperty("--accent-glow", themeObj.glow);
-  }, [currentTheme]);
-
-  // Audio triggering and Scroll management on new messages
+  // Auto scroll logic (isolated to container)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
@@ -144,11 +127,9 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
       if (lastMessage) {
         if (lastMessage.username === username) {
           playSound("send", soundEnabled);
-          // Force scroll to bottom instantly when self submits a message
           container.scrollTop = container.scrollHeight;
         } else {
           playSound("receive", soundEnabled);
-          // Auto scroll for others only if user is already near the bottom
           const threshold = 150;
           const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < threshold;
           if (isNearBottom) {
@@ -157,22 +138,20 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
         }
       }
     } else if (prevMessagesCount.current === 0 && messages.length > 0) {
-      // Instant snap scroll to bottom on initial message load (prevents sliding/jumping layout)
       container.scrollTop = container.scrollHeight;
     }
 
     prevMessagesCount.current = messages.length;
   }, [messages, username, soundEnabled]);
 
-  // Play joining sound effect on mount
+  // Initial trigger scroll and chime on mount
   useEffect(() => {
     playSound("join", soundEnabled);
-    // Safety check: ensure scroll is correct on initial load
     setTimeout(() => {
       if (containerRef.current) {
         containerRef.current.scrollTop = containerRef.current.scrollHeight;
       }
-    }, 100);
+    }, 50);
   }, []);
 
   const handleSend = () => {
@@ -187,104 +166,92 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
     setText((prev) => prev + emoji);
   };
 
-  // Extract unique active members in the chat room based on past messages
-  const activeMembers = Array.from(new Set([username, ...messages.map((m) => m.username)]));
-
-  const currentThemeObj = THEMES.find((t) => t.id === currentTheme) || THEMES[0];
-
   const formatTime = (isoString: string) => {
     try {
       const date = new Date(isoString);
       if (isNaN(date.getTime())) return "";
-      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false });
     } catch {
       return "";
     }
   };
 
   return (
-    <div
-      className="w-screen h-screen text-white flex p-4 gap-4 overflow-hidden relative select-none font-sans"
-      style={{
-        background: `radial-gradient(circle at 10% 20%, rgba(${currentThemeObj.rgb}, 0.08) 0%, rgba(3, 3, 8, 1) 90%), radial-gradient(circle at 90% 80%, rgba(${currentThemeObj.rgb}, 0.05) 0%, rgba(3, 3, 8, 1) 90%)`
-      }}
-    >
-      {/* Sidebar Console (Desktop: fixed, Mobile: sliding drawer) */}
+    <div className="w-screen h-screen bg-[#07080a] text-zinc-100 flex p-4 gap-4 overflow-hidden relative select-none font-sans">
+      
+      {/* Dynamic Sidebar */}
       <div
-        className={`fixed md:relative z-40 top-4 bottom-4 left-4 md:left-auto md:top-0 md:bottom-0 w-80 glass-panel rounded-2xl flex flex-col justify-between p-6 transition-all duration-300 shrink-0 ${
+        className={`fixed md:relative z-40 top-4 bottom-4 left-4 md:left-auto md:top-0 md:bottom-0 w-72 bg-[#0b0d10] border border-[#181c24] rounded-lg flex flex-col justify-between p-5 transition-all duration-200 shrink-0 ${
           showMobileSidebar ? "translate-x-0" : "-translate-x-[110%] md:translate-x-0"
         }`}
       >
-        <div className="space-y-6">
-          {/* Sidebar Header */}
-          <div className="flex items-center justify-between">
+        <div className="space-y-5">
+          {/* Header */}
+          <div className="flex items-center justify-between border-b border-[#181c24] pb-3">
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="font-bold tracking-widest text-sm text-zinc-300 font-title uppercase">
-                Nexus Console
+              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="font-bold tracking-wider text-xs font-mono-custom text-zinc-400 uppercase">
+                NEXUS // CONSOLE
               </span>
             </div>
-            {/* Close Mobile Sidebar */}
             <button
               onClick={() => {
                 playSound("click", soundEnabled);
                 setShowMobileSidebar(false);
               }}
-              className="md:hidden text-zinc-400 hover:text-white p-1 hover:bg-white/5 rounded cursor-pointer"
+              className="md:hidden text-zinc-500 hover:text-white text-xs cursor-pointer"
             >
               ✕
             </button>
           </div>
 
-          {/* Current Node Details */}
-          <div className="bg-white/[0.02] p-4 rounded-xl border border-white/5 space-y-2.5">
+          {/* Node Details */}
+          <div className="bg-[#0e1115] p-3 rounded.5 border border-[#1d2433] space-y-2">
             <div>
-              <span className="text-[10px] text-zinc-500 block uppercase font-semibold">Active Node ID</span>
-              <span className="font-bold font-title text-transparent bg-clip-text bg-gradient-to-r from-white to-white/70">
+              <span className="text-[9px] font-mono-custom text-zinc-500 block uppercase">NODE ROOM KEY</span>
+              <span className="font-semibold text-zinc-300 font-mono-custom text-xs">
                 #{roomId}
               </span>
             </div>
-            <div className="flex items-center gap-3 pt-2 border-t border-white/5">
+            <div className="flex items-center gap-2.5 pt-2 border-t border-[#1d2433]">
               <div
-                className="w-9 h-9 rounded-full flex items-center justify-center text-lg shadow-md border border-white/5"
-                style={{ background: avatarGradient }}
+                className="w-7 h-7 rounded-full flex items-center justify-center text-sm border border-white/5"
+                style={{ backgroundColor: avatarGradient }}
               >
                 {avatarIcon}
               </div>
               <div className="overflow-hidden">
-                <span className="text-[10px] text-zinc-500 block uppercase font-semibold">Client Persona</span>
-                <span className="font-semibold block truncate text-zinc-200">{username}</span>
+                <span className="text-[9px] font-mono-custom text-zinc-500 block uppercase">ALIAS</span>
+                <span className="font-semibold block truncate text-zinc-200 text-xs">{username}</span>
               </div>
             </div>
           </div>
 
-          {/* Dynamic Users List */}
-          <div className="space-y-3">
-            <span className="text-[10px] text-zinc-500 block uppercase font-semibold tracking-wider">
-              Discovered Nodes ({activeMembers.length})
+          {/* Online presence roster */}
+          <div className="space-y-2">
+            <span className="text-[9px] font-mono-custom text-zinc-500 block uppercase tracking-wider">
+              ONLINE ROSTER ({activeUsers.length})
             </span>
-            <div className="space-y-2 max-h-48 overflow-y-auto custom-scrollbar pr-1">
-              {activeMembers.map((member) => {
+            <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+              {activeUsers.map((member) => {
                 const isSelf = member === username;
                 const memberAvatar = getAvatarForUser(member);
                 return (
                   <div
                     key={member}
-                    className={`flex items-center justify-between p-2.5 rounded-lg border transition-colors ${
-                      isSelf ? "bg-white/[0.04] border-white/10" : "bg-transparent border-transparent hover:bg-white/[0.02]"
-                    }`}
+                    className={`flex items-center justify-between p-2 rounded bg-zinc-950/40 border border-[#12161f] transition-all`}
                   >
-                    <div className="flex items-center gap-2.5 overflow-hidden">
+                    <div className="flex items-center gap-2 overflow-hidden">
                       <div
-                        className="w-7 h-7 rounded-full flex items-center justify-center text-sm shadow border border-white/5"
-                        style={{ background: memberAvatar.gradient }}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-xs shrink-0 text-white"
+                        style={{ backgroundColor: memberAvatar.color }}
                       >
                         {memberAvatar.emblem}
                       </div>
-                      <span className="text-sm truncate text-zinc-300 font-medium">{member}</span>
+                      <span className="text-xs truncate text-zinc-400 font-medium">{member}</span>
                     </div>
                     {isSelf && (
-                      <span className="text-[9px] bg-indigo-500/20 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.5 rounded uppercase font-bold">
+                      <span className="text-[8px] font-mono-custom bg-emerald-950/50 text-emerald-400 border border-emerald-500/20 px-1 rounded uppercase">
                         Self
                       </span>
                     )}
@@ -294,112 +261,84 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
             </div>
           </div>
 
-          {/* Controls Console */}
-          <div className="space-y-4">
-            <span className="text-[10px] text-zinc-500 block uppercase font-semibold tracking-wider">
-              Control Center
+          {/* Toggles */}
+          <div className="space-y-2.5">
+            <span className="text-[9px] font-mono-custom text-zinc-500 block uppercase tracking-wider">
+              CONTROLS
             </span>
-            <div className="space-y-3 bg-white/[0.01] p-3.5 rounded-xl border border-white/5">
-              {/* Sound toggle */}
-              <div className="flex items-center justify-between">
-                <span className="text-xs text-zinc-400 font-medium">UI Audio Synthesizer</span>
-                <button
-                  onClick={() => {
-                    const next = !soundEnabled;
-                    setSoundEnabled(next);
-                    playSound("click", next);
-                  }}
-                  className={`relative w-11 h-6 rounded-full cursor-pointer transition-colors duration-300 ${
-                    soundEnabled ? "bg-indigo-500" : "bg-zinc-700"
+            <div className="bg-[#0d0f13] p-3 rounded border border-[#1d2433] flex items-center justify-between">
+              <span className="text-[11px] text-zinc-400 font-medium font-mono-custom uppercase">SYNTH AUDIO</span>
+              <button
+                onClick={() => {
+                  const next = !soundEnabled;
+                  setSoundEnabled(next);
+                  playSound("click", next);
+                }}
+                className={`w-9 h-5 rounded-full cursor-pointer relative transition-colors duration-200 ${
+                  soundEnabled ? "bg-emerald-600" : "bg-zinc-800"
+                }`}
+              >
+                <span
+                  className={`absolute top-0.5 left-0.5 w-4 h-4 rounded-full bg-black transition-transform duration-200 ${
+                    soundEnabled ? "translate-x-4" : "translate-x-0"
                   }`}
-                >
-                  <span
-                    className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform duration-300 ${
-                      soundEnabled ? "translate-x-5" : "translate-x-0"
-                    }`}
-                  />
-                </button>
-              </div>
-
-              {/* Accent Picker */}
-              <div className="flex flex-col gap-2 pt-2.5 border-t border-white/5">
-                <span className="text-[10px] text-zinc-500 font-semibold uppercase">Console Accent</span>
-                <div className="flex gap-2">
-                  {THEMES.map((theme) => (
-                    <button
-                      key={theme.id}
-                      onClick={() => {
-                        setCurrentTheme(theme.id);
-                        playSound("click", soundEnabled);
-                      }}
-                      className={`w-5 h-5 rounded-full cursor-pointer transition-all border ${
-                        currentTheme === theme.id ? "border-white scale-110" : "border-white/10 hover:scale-105"
-                      }`}
-                      style={{ backgroundColor: `rgb(${theme.rgb})` }}
-                    />
-                  ))}
-                </div>
-              </div>
+                />
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Leave Room Button */}
+        {/* Disconnect */}
         <button
           onClick={() => {
             playSound("click", soundEnabled);
             onLeave();
           }}
-          className="w-full py-3.5 mt-4 rounded-xl cursor-pointer bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 hover:border-red-500/40 text-sm font-bold tracking-wider transition-all duration-300 active:scale-95 shrink-0"
+          className="w-full py-2 bg-red-950/20 hover:bg-red-950/40 text-red-400 border border-red-500/10 hover:border-red-500/20 text-xs font-semibold tracking-wider font-mono-custom transition-all cursor-pointer uppercase rounded"
         >
-          DISCONNECT NODE
+          DISCONNECT
         </button>
       </div>
 
-      {/* Main Chat Panel */}
-      <div className="flex-1 glass-panel rounded-2xl flex flex-col overflow-hidden relative border border-white/5">
+      {/* Main Chat Console Panel */}
+      <div className="flex-1 bg-[#0b0d10] border border-[#181c24] rounded-lg flex flex-col overflow-hidden relative">
         
         {/* Top Header Console Bar */}
-        <div className="h-16 px-6 border-b border-white/5 flex items-center justify-between shrink-0 bg-white/[0.01]">
-          <div className="flex items-center gap-3">
-            {/* Mobile Sidebar Trigger */}
+        <div className="h-14 px-5 border-b border-[#181c24] flex items-center justify-between shrink-0 bg-[#0d0f13]">
+          <div className="flex items-center gap-2.5">
             <button
               onClick={() => {
                 playSound("click", soundEnabled);
                 setShowMobileSidebar(true);
               }}
-              className="md:hidden p-2 text-zinc-400 hover:text-white hover:bg-white/5 rounded cursor-pointer shrink-0"
+              className="md:hidden text-zinc-400 hover:text-white p-1 hover:bg-zinc-800 rounded cursor-pointer shrink-0"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
-            <div className="overflow-hidden">
-              <span className="text-[10px] text-zinc-500 uppercase block font-semibold">Active Node</span>
-              <span className="font-bold text-zinc-200 truncate block text-sm md:text-base">#{roomId}</span>
-            </div>
+            <span className="text-xs font-mono-custom font-bold text-zinc-300 uppercase">
+              ROOM // {roomId}
+            </span>
           </div>
           <div className="text-right">
-            <span className="text-[10px] text-zinc-500 uppercase block font-semibold">Log Volume</span>
-            <span className="text-xs text-zinc-400 font-medium">
-              {messages.length} transmission{messages.length !== 1 ? "s" : ""}
+            <span className="text-[10px] font-mono-custom text-zinc-500 uppercase">
+              LOGS: {messages.length} TRANSMISSIONS
             </span>
           </div>
         </div>
 
-        {/* Message Log Output Console */}
+        {/* Message Log Viewport */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-y-auto p-6 flex flex-col gap-4 custom-scrollbar"
+          className="flex-1 overflow-y-auto p-5 flex flex-col gap-3.5 custom-scrollbar bg-[#08090c]"
         >
           {messages.length === 0 ? (
-            <div className="m-auto text-center space-y-2 opacity-40 max-w-sm pointer-events-none">
-              <div className="w-12 h-12 rounded-full border border-white/10 m-auto flex items-center justify-center text-xl animate-float">
-                💬
-              </div>
-              <p className="text-xs uppercase tracking-widest text-zinc-400 font-bold">Log is empty</p>
-              <p className="text-[11px] text-zinc-500 leading-relaxed">
-                Send a message to initialize telemetry logs on the channel server.
+            <div className="m-auto text-center space-y-2 opacity-35 max-w-xs pointer-events-none font-mono-custom text-[11px]">
+              <div className="text-xl">🗃️</div>
+              <p className="uppercase tracking-widest text-zinc-400 font-bold">NODE LOG IS VACANT</p>
+              <p className="text-zinc-500 leading-relaxed">
+                Awaiting telemetry logs on this room frequency channel.
               </p>
             </div>
           ) : (
@@ -408,21 +347,20 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
               const senderAvatar = getAvatarForUser(msg.username);
               const messageTime = formatTime(msg.timestamp);
 
-              // Apply animation only to the single latest message as it arrives
               const isLastMessage = i === messages.length - 1;
-              const animationClass = isLastMessage ? "animate-msg-fade" : "";
+              const animationClass = isLastMessage ? "animate-fade" : "";
 
               return (
                 <div
                   key={i}
-                  className={`flex items-end gap-3 max-w-[85%] md:max-w-[70%] ${
+                  className={`flex items-start gap-2.5 max-w-[85%] md:max-w-[70%] ${
                     isSelf ? "self-end flex-row-reverse" : "self-start"
                   } ${animationClass}`}
                 >
                   {/* Sender Avatar */}
                   <div
-                    className="w-8 h-8 rounded-full flex items-center justify-center text-sm shadow border border-white/5 shrink-0 select-none"
-                    style={{ background: senderAvatar.gradient }}
+                    className="w-7 h-7 rounded-full flex items-center justify-center text-xs shadow border border-white/5 shrink-0 select-none text-white font-sans"
+                    style={{ backgroundColor: senderAvatar.color }}
                     title={msg.username}
                   >
                     {senderAvatar.emblem}
@@ -430,31 +368,25 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
 
                   {/* Message Bubble Container */}
                   <div className="space-y-1">
-                    {/* User handle name for received messages */}
                     {!isSelf && (
-                      <span className="text-[10px] font-semibold text-zinc-500 pl-1 block">
+                      <span className="text-[10px] font-mono-custom font-bold text-zinc-500 pl-1 block uppercase">
                         {msg.username}
                       </span>
                     )}
 
                     <div
-                      className={`px-4 py-2.5 rounded-2xl text-[13px] md:text-sm font-medium leading-relaxed relative ${
+                      className={`px-3 py-2 rounded text-xs md:text-sm leading-relaxed relative ${
                         isSelf
-                          ? "rounded-tr-sm text-black"
-                          : "rounded-tl-sm bg-white/[0.04] border border-white/5 text-zinc-100"
+                          ? "bg-emerald-950/40 border border-emerald-500/20 text-emerald-100 rounded-tr-none"
+                          : "bg-[#0d0f13] border border-[#181c24] text-zinc-200 rounded-tl-none"
                       }`}
-                      style={{
-                        backgroundColor: isSelf ? `rgb(${currentThemeObj.rgb})` : undefined,
-                        boxShadow: isSelf ? `0 4px 15px rgba(${currentThemeObj.rgb}, 0.15)` : "none",
-                      }}
                     >
                       <p className="whitespace-pre-wrap break-words">{msg.message}</p>
                     </div>
 
-                    {/* Timestamp */}
                     {messageTime && (
                       <span
-                        className={`text-[9px] text-zinc-600 block px-1 ${
+                        className={`text-[9px] font-mono-custom text-zinc-600 block px-1 ${
                           isSelf ? "text-right" : "text-left"
                         }`}
                       >
@@ -468,20 +400,20 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
           )}
         </div>
 
-        {/* Input Console Control Area */}
-        <div className="p-4 border-t border-white/5 bg-white/[0.01] space-y-3.5 shrink-0">
+        {/* Input Control Area */}
+        <div className="p-4 border-t border-[#181c24] bg-[#0d0f13] space-y-3 shrink-0">
           
-          {/* Emojis Quick Tray */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 custom-scrollbar">
-            <span className="text-[10px] text-zinc-500 font-semibold uppercase pr-2 shrink-0 select-none">
-              Fast Reactions
+          {/* Emojis Tray */}
+          <div className="flex items-center gap-1 overflow-x-auto pb-0.5 custom-scrollbar">
+            <span className="text-[9px] font-mono-custom text-zinc-500 uppercase pr-2 shrink-0 select-none">
+              QUICK TRACE:
             </span>
             {QUICK_EMOJIS.map((emoji) => (
               <button
                 key={emoji}
                 type="button"
                 onClick={() => handleEmojiClick(emoji)}
-                className="text-base p-1.5 rounded-lg hover:bg-white/10 active:scale-90 cursor-pointer transition-all shrink-0"
+                className="text-xs p-1 rounded hover:bg-zinc-800 active:scale-90 cursor-pointer transition-all shrink-0"
               >
                 {emoji}
               </button>
@@ -489,7 +421,7 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
           </div>
 
           {/* Text Input Row */}
-          <div className="flex gap-3">
+          <div className="flex gap-2">
             <input
               type="text"
               value={text}
@@ -499,21 +431,14 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
                   handleSend();
                 }
               }}
-              placeholder="Inject telemetry transmission..."
-              className="flex-1 p-3.5 rounded-xl text-sm glass-input font-medium"
+              placeholder="Type transmission payload..."
+              className="flex-1 p-2 rounded text-xs glass-input font-medium"
             />
             <button
-              onClick={() => {
-                playSound("click", soundEnabled);
-                handleSend();
-              }}
-              className="px-6 py-3.5 rounded-xl cursor-pointer font-bold text-sm tracking-wider text-black transition-all duration-300 font-title active:scale-95 hover:shadow-md shrink-0"
-              style={{
-                backgroundColor: `rgb(${currentThemeObj.rgb})`,
-                boxShadow: `0 4px 20px rgba(${currentThemeObj.rgb}, 0.2)`,
-              }}
+              onClick={handleSend}
+              className="px-5 py-2 rounded bg-emerald-600 hover:bg-emerald-500 text-black text-xs font-bold font-mono-custom cursor-pointer transition-colors uppercase"
             >
-              SEND
+              Send
             </button>
           </div>
         </div>
@@ -527,7 +452,7 @@ const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradi
             playSound("click", soundEnabled);
             setShowMobileSidebar(false);
           }}
-          className="fixed inset-0 z-30 bg-black/60 backdrop-blur-sm md:hidden"
+          className="fixed inset-0 z-30 bg-black/50 md:hidden"
         />
       )}
     </div>

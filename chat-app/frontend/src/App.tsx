@@ -13,11 +13,12 @@ export default function App() {
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  const [activeUsers, setActiveUsers] = useState<string[]>([]);
   
   // Customization States
-  const [accent, setAccent] = useState("indigo");
-  const [avatarGradient, setAvatarGradient] = useState("linear-gradient(135deg, #6366f1, #a855f7)");
-  const [avatarIcon, setAvatarIcon] = useState("⚡");
+  const [accent, setAccent] = useState("emerald");
+  const [avatarGradient, setAvatarGradient] = useState("#10b981");
+  const [avatarIcon, setAvatarIcon] = useState("👤");
   
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -55,12 +56,21 @@ export default function App() {
     };
 
     ws.onmessage = (event) => {
-      const data: Message = JSON.parse(event.data);
-      setMessages((prev) => [...prev, data]);
+      const data = JSON.parse(event.data);
+      if (data.type === "chat") {
+        setMessages((prev) => [...prev, {
+          username: data.username,
+          message: data.message,
+          timestamp: data.timestamp
+        }]);
+      } else if (data.type === "presence") {
+        setActiveUsers(data.users);
+      }
     };
 
     ws.onclose = () => {
       setJoined(false);
+      setActiveUsers([]);
     };
   };
 
@@ -75,6 +85,7 @@ export default function App() {
     wsRef.current?.close();
     wsRef.current = null;
     setMessages([]);
+    setActiveUsers([]);
     setJoined(false);
   };
 
@@ -87,6 +98,7 @@ export default function App() {
       roomId={roomId}
       username={username}
       messages={messages}
+      activeUsers={activeUsers}
       onSend={handleSend}
       onLeave={handleLeave}
       accent={accent}
