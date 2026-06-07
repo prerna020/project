@@ -14,6 +14,79 @@ interface Props {
 
 const EMBLEMS = ["⚡", "👾", "🪐", "🔮", "🔥", "💫", "🛡️", "👑", "🚀", "🛸"];
 
+const playSound = (type: "send" | "receive" | "click" | "join", enabled: boolean) => {
+  if (!enabled) return;
+  try {
+    const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    if (type === "click") {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.012, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.05);
+    } else if (type === "send") {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(500, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.025, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.1);
+    } else if (type === "receive") {
+      const osc1 = audioCtx.createOscillator();
+      const osc2 = audioCtx.createOscillator();
+      const gain1 = audioCtx.createGain();
+      const gain2 = audioCtx.createGain();
+      
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(880, audioCtx.currentTime);
+      gain1.gain.setValueAtTime(0.015, audioCtx.currentTime);
+      gain1.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.08);
+      
+      osc2.type = "sine";
+      osc2.frequency.setValueAtTime(1320, audioCtx.currentTime + 0.05);
+      gain2.gain.setValueAtTime(0.015, audioCtx.currentTime + 0.05);
+      gain2.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.15);
+      
+      osc1.connect(gain1);
+      gain1.connect(audioCtx.destination);
+      osc2.connect(gain2);
+      gain2.connect(audioCtx.destination);
+      
+      osc1.start();
+      osc1.stop(audioCtx.currentTime + 0.1);
+      osc2.start(audioCtx.currentTime + 0.05);
+      osc2.stop(audioCtx.currentTime + 0.2);
+    } else if (type === "join") {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(250, audioCtx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(650, audioCtx.currentTime + 0.2);
+      gain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.start();
+      osc.stop(audioCtx.currentTime + 0.2);
+    }
+  } catch (error) {
+    console.warn("Audio Context blocked:", error);
+  }
+};
+
+
 const Chat = ({ roomId, username, messages, onSend, onLeave, accent, avatarGradient, avatarIcon }: Props) => {
   const [text, setText] = useState("");
   const [soundEnabled, setSoundEnabled] = useState(true);
