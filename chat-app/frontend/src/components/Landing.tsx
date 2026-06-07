@@ -24,7 +24,7 @@ const EMBLEMS = ["👤", "⚡", "☕", "💻", "✨", "🪐", "🔥", "🛠️",
 const Landing = ({ onJoin }: LandingProps) => {
   const [user, setUser] = useState("");
   const [roomId, setRoomId] = useState("");
-  
+
   // Customization choices
   const [selectedColor, setSelectedColor] = useState(AVATAR_COLORS[0].css);
   const [selectedEmblem, setSelectedEmblem] = useState("👤");
@@ -38,18 +38,18 @@ const Landing = ({ onJoin }: LandingProps) => {
 
   return (
     <div className="w-screen h-screen bg-[#07080a] text-zinc-100 flex items-center justify-center p-4 relative overflow-hidden font-sans select-none">
-      
+
       {/* Centered clean card */}
-      <div className="w-full max-w-md bg-[#0b0d10] border border-[#181c24] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden animate-fade">
-        
+      <div className="w-full max-w-md bg-[#2C3947] border border-[#181c24] rounded-xl shadow-[0_12px_40px_rgba(0,0,0,0.6)] overflow-hidden animate-fade">
+
         {/* Card Header */}
         <div className="p-6 border-b border-[#181c24] flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded bg-emerald-500 flex items-center justify-center text-xs text-black font-bold font-mono-custom">
-              N
+            <div className="w-6 h-6 rounded bg-grey-500 flex items-center justify-center text-xs text-black font-bold font-mono-custom">
+              💬
             </div>
             <span className="text-sm font-semibold tracking-wider font-mono-custom text-zinc-300">
-              NEXUS // CORE_ONBOARDING
+              NEXUS Chat
             </span>
           </div>
           <span className="text-[10px] font-mono-custom text-zinc-500 uppercase tracking-widest">
@@ -59,11 +59,11 @@ const Landing = ({ onJoin }: LandingProps) => {
 
         {/* Form Body */}
         <form onSubmit={handleJoin} className="p-6 space-y-6">
-          
+
           {/* Section: Profile Assembly */}
           <div className="space-y-4">
-            <span className="text-[11px] font-mono-custom text-zinc-500 uppercase tracking-wider block">
-              01. PROFILE CONFIG
+            <span className="text-[15px] font-mono-custom text-zinc-300 uppercase tracking-wider block">
+              PROFILE CONFIG
             </span>
 
             {/* Avatar Previewer */}
@@ -76,8 +76,8 @@ const Landing = ({ onJoin }: LandingProps) => {
                 {selectedEmblem}
               </div>
               <div className="space-y-2 w-full overflow-hidden">
-                <span className="text-[10px] font-mono-custom text-zinc-500 block">AVATAR PRESET</span>
-                
+                <span className="text-[10px] font-mono-custom text-white-500 block">AVATAR PRESET</span>
+
                 {/* Background choices */}
                 <div className="flex gap-2">
                   {AVATAR_COLORS.map((color) => (
@@ -85,9 +85,8 @@ const Landing = ({ onJoin }: LandingProps) => {
                       type="button"
                       key={color.id}
                       onClick={() => setSelectedColor(color.css)}
-                      className={`w-4 h-4 rounded-full cursor-pointer border transition-transform ${
-                        selectedColor === color.css ? "border-white scale-110" : "border-transparent hover:scale-105"
-                      }`}
+                      className={`w-4 h-4 rounded-full cursor-pointer border transition-transform ${selectedColor === color.css ? "border-white scale-110" : "border-transparent hover:scale-105"
+                        }`}
                       style={{ backgroundColor: color.css }}
                     />
                   ))}
@@ -100,9 +99,8 @@ const Landing = ({ onJoin }: LandingProps) => {
                       type="button"
                       key={e}
                       onClick={() => setSelectedEmblem(e)}
-                      className={`p-0.5 rounded hover:bg-zinc-800 cursor-pointer ${
-                        selectedEmblem === e ? "bg-zinc-800" : "opacity-50"
-                      }`}
+                      className={`p-0.5 rounded hover:bg-zinc-800 cursor-pointer ${selectedEmblem === e ? "bg-zinc-800" : "opacity-50"
+                        }`}
                     >
                       {e}
                     </button>
@@ -114,8 +112,8 @@ const Landing = ({ onJoin }: LandingProps) => {
 
           {/* Section: Credentials */}
           <div className="space-y-4">
-            <span className="text-[11px] font-mono-custom text-zinc-500 uppercase tracking-wider block">
-              02. CONNECTION PATH
+            <span className="text-[15px] font-mono-custom text-zinc-300 uppercase tracking-wider block">
+              CONNECTION PATH
             </span>
 
             <div className="space-y-3.5">
@@ -128,7 +126,7 @@ const Landing = ({ onJoin }: LandingProps) => {
                   required
                   value={user}
                   onChange={(e) => setUser(e.target.value)}
-                  placeholder="Enter alias"
+                  placeholder="Enter your username"
                   maxLength={16}
                   className="w-full p-2.5 rounded text-sm glass-input font-medium"
                 />

@@ -14,12 +14,12 @@ export default function App() {
   const [username, setUsername] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
-  
+
   // Customization States
   const [accent, setAccent] = useState("emerald");
   const [avatarGradient, setAvatarGradient] = useState("#10b981");
   const [avatarIcon, setAvatarIcon] = useState("👤");
-  
+
   const wsRef = useRef<WebSocket | null>(null);
 
   const handleJoin = (
@@ -41,7 +41,7 @@ export default function App() {
         type: "join",
         payload: { roomId: room, username: user },
       }));
-      
+
       // Save identity & theme configs
       setRoomId(room);
       setUsername(user);

@@ -6,15 +6,15 @@
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
   
-  /* Muted Elegant Mint Green */
-  --accent: 16, 185, 129;
-  --accent-rgb: 16, 185, 129;
-  --accent-glow: rgba(16, 185, 129, 0.15);
+  /* Slate Steel Blue (#7F8CAA) */
+  --accent: 127, 140, 170;
+  --accent-rgb: 127, 140, 170;
+  --accent-glow: rgba(127, 140, 170, 0.15);
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #07080a;
+  background-color: #1B1D24;
   color: #e4e4e7;
   margin: 0;
   overflow: hidden;
@@ -42,34 +42,34 @@ h1, h2, h3, h4, h5, h6, button, .font-title {
   background: transparent;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #1e222b;
+  background: #323746;
   border-radius: 3px;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #2b313e;
+  background: #41485c;
 }
 
-/* Flat Console Surfaces (Zero Backdrop Blur for Speed) */
+/* Clean Panel Presets (No muddy colors, cohesive slate layout) */
 .glass-card {
-  background-color: #0f1115;
-  border: 1px solid #1f242e;
+  background-color: #252833;
+  border: 1px solid #323746;
 }
 
 .glass-panel {
-  background-color: #0b0d10;
-  border: 1px solid #181c24;
+  background-color: #252833;
+  border: 1px solid #323746;
 }
 
 .glass-input {
-  background-color: #0d0f13;
-  border: 1px solid #1e2430;
+  background-color: #1B1D24;
+  border: 1px solid #323746;
   color: #f4f4f5;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .glass-input:focus {
   border-color: rgb(var(--accent));
-  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.2);
+  box-shadow: 0 0 0 1px rgba(var(--accent-rgb), 0.25);
   outline: none;
 }
 
