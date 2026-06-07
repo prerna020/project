@@ -13,10 +13,21 @@ export default function App() {
   const [roomId, setRoomId] = useState("");
   const [username, setUsername] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
+  
+  // Customization States
+  const [accent, setAccent] = useState("indigo");
+  const [avatarGradient, setAvatarGradient] = useState("linear-gradient(135deg, #6366f1, #a855f7)");
+  const [avatarIcon, setAvatarIcon] = useState("⚡");
+  
   const wsRef = useRef<WebSocket | null>(null);
 
-  const handleJoin = (room: string, user: string) => {
-    
+  const handleJoin = (
+    room: string,
+    user: string,
+    selectedAccent: string,
+    selectedGradient: string,
+    selectedIcon: string
+  ) => {
     if (wsRef.current) {
       wsRef.current.close();
     }
@@ -29,8 +40,13 @@ export default function App() {
         type: "join",
         payload: { roomId: room, username: user },
       }));
+      
+      // Save identity & theme configs
       setRoomId(room);
       setUsername(user);
+      setAccent(selectedAccent);
+      setAvatarGradient(selectedGradient);
+      setAvatarIcon(selectedIcon);
       setJoined(true);
     };
 
@@ -39,10 +55,7 @@ export default function App() {
     };
 
     ws.onmessage = (event) => {
-     
       const data: Message = JSON.parse(event.data);
-      
-      
       setMessages((prev) => [...prev, data]);
     };
 
@@ -76,6 +89,9 @@ export default function App() {
       messages={messages}
       onSend={handleSend}
       onLeave={handleLeave}
+      accent={accent}
+      avatarGradient={avatarGradient}
+      avatarIcon={avatarIcon}
     />
   ) : (
     <Landing onJoin={handleJoin} />
