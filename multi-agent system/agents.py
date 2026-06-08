@@ -1,19 +1,38 @@
-from langchain_huggingface import ChatHuggingFace, HuggingFaceEndpoint
+from langchain_openai import ChatOpenAI
 from langchain.agents import create_react_agent, AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from dotenv import load_dotenv
 from tools import web_search, scrape_url 
+import os
 
 load_dotenv()
 
-llm = HuggingFaceEndpoint(
-    repo_id="deepseek-ai/DeepSeek-R1",
-    task="text-generation",
-    max_new_tokens=512
-)
+def get_groq_api_key() -> str:
+    token = os.getenv("GROQ_API_KEY")
+    if not token:
+        raise RuntimeError(
+            "Missing Groq API key. Add GROQ_API_KEY=gsk_your_key_here to .env."
+        )
 
-model = ChatHuggingFace(llm=llm)
+    token = token.strip()
+    if not token.startswith("gsk_") or any(char.isspace() for char in token):
+        raise RuntimeError(
+            "Invalid Groq API key format in .env. Create a new key at "
+            "https://console.groq.com/keys and save it as GROQ_API_KEY=gsk_your_key_here."
+        )
+
+    return token
+
+
+llm = ChatOpenAI(
+    model=os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"),
+    api_key=get_groq_api_key(),
+    base_url="https://api.groq.com/openai/v1",
+    max_tokens=512,
+    temperature=0.2,
+)
+model = llm
 
 react_template = '''Answer the following questions as best you can. You have access to the following tools:
 
