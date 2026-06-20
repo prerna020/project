@@ -1,6 +1,7 @@
 import dbConnect from "@/public/lib/db";
 import UserModel from "@/public/models/User";
 import bcrypt from "bcryptjs";
+import { sendVerificationEmail } from "@/public/helper/sendVerificationEmail";
 
 export async function  POST(request :Request) {
     await dbConnect();
@@ -23,16 +24,31 @@ export async function  POST(request :Request) {
         const existingUserByEmail = await UserModel.findOne({email})
 
         if(existingUserByEmail){
-            return Response.json(
-                {
-                    success: false,
-                    message: "User already exists by email",
-                }, 
-                {
-                    status: 400
-                }
-            )
-        } else{
+            if(existingUserByEmail.isVerified){
+                return Response.json(
+                    {
+                        success: false,
+                        message: "User already exists by email",
+                    }, 
+                    {
+                        status: 400
+                    }
+                )
+            } else{
+                // update existing user with new details
+                const hashedPassword = await bcrypt.hash(password,10)
+                const expiryDate = new Date()
+                expiryDate.setHours(expiryDate.getHours()+1)
+
+                existingUserByEmail.password = hashedPassword
+                existingUserByEmail.verifyCode = verifyCode
+                existingUserByEmail.verifyCodeExpiry = expiryDate
+
+                await existingUserByEmail.save();
+            }
+            
+        }else{
+            // user does not exists
             const hashedPassword = await bcrypt.hash(password,10)
             const expiryDate = new Date()
             expiryDate.setHours(expiryDate.getHours()+1)
@@ -49,11 +65,20 @@ export async function  POST(request :Request) {
             })
 
             await newUser.save();
-
-            // send verification mail
         }
-
-        
+        //send verification mail
+        const emailResponse = await sendVerificationEmail(email, username, verifyCode)
+        if(!emailResponse.success){
+            return Response.json(
+                {
+                    success: false,
+                    message: emailResponse.message
+                },
+                {
+                    status: 500
+                }
+            )
+        }
 
     } catch (error) {
         console.log("Error in registering user", error)
