@@ -1,52 +1,52 @@
-import {NextAuthOptions} from 'next-auth';
+import { NextAuthOptions } from 'next-auth';
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from 'bcryptjs';
-import dbConnect from '@/public/lib/db';
-import UserModel from '@/public/models/User';
+import dbConnect from '@/src/lib/db';
+import UserModel from '@/src/models/User';
 
-export const authOptions: NextAuthOptions= {
-    providers:[
+export const authOptions: NextAuthOptions = {
+    providers: [
         CredentialsProvider({
             id: "credentials",
             name: "Credentials",
 
             credentials: {
-            username: { label: "Username", type: "text"},
-            password: { label: "Password", type: "password" }
+                username: { label: "Username", type: "text" },
+                password: { label: "Password", type: "password" }
             },
-            async authorize(credentials : any) : Promise<any> {
+            async authorize(credentials: any): Promise<any> {
                 await dbConnect()
                 try {
                     const user = await UserModel.findOne({
-                        $or:[
-                            {email: credentials.identifier},
-                            {username: credentials.identifier}
+                        $or: [
+                            { email: credentials.identifier },
+                            { username: credentials.identifier }
                         ]
                     })
 
-                    if (!user){
+                    if (!user) {
                         throw new Error("No user found with this username or email")
                     }
 
-                    if(!user.isVerified){
+                    if (!user.isVerified) {
                         throw new Error("Please verify your account first")
                     }
 
                     const isPasswordCorrect = await bcrypt.compare(credentials.password, user.password)
 
-                    if (!isPasswordCorrect){
+                    if (!isPasswordCorrect) {
                         throw new Error("Invalid password")
                     }
                     return user
                 } catch (error) {
                     return null
-                }                
+                }
             }
         })
     ],
     callbacks: {
-        async jwt({token, user}){
-            if(user){
+        async jwt({ token, user }) {
+            if (user) {
                 token.id = user._id
                 token.username = user.username
                 token.isVerified = user.isVerified
@@ -54,7 +54,7 @@ export const authOptions: NextAuthOptions= {
             }
             return token
         },
-        async session({session, token}){
+        async session({ session, token }) {
             session.user.id = token.id
             session.user.username = token.username
             session.user.isVerified = token.isVerified
@@ -63,7 +63,7 @@ export const authOptions: NextAuthOptions= {
         }
     },
     session: {
-        strategy : "jwt"
+        strategy: "jwt"
     },
     secret: process.env.NEXTAUTH_SECRET
 }
