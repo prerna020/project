@@ -1,13 +1,14 @@
-import {Html, Head, Row, Section, Tailwind, Heading, Text, Button, Preview} from "@react-email/components"
+import {Html, Head, Row, Section, Tailwind, Heading, Text, Preview} from "@react-email/components"
 
 interface VerificationEmailProps{
     username: string,
-    otp: string
+    otp: string,
+    email: string
 }
 
-export default function VerificationEmail({username, otp}: VerificationEmailProps) {
+export default function VerificationEmail({username, otp, email}: VerificationEmailProps) {
     return (
-        <Html lang= "en" dir="ltr">
+        <Html lang="en" dir="ltr">
             <Head>
                 <title>
                     Verification Code
@@ -30,7 +31,12 @@ export default function VerificationEmail({username, otp}: VerificationEmailProp
                     </Row>
                     <Row>
                         <Text>
-                            Thank you for registrating. Here is your verification code: {otp}
+                            Sign-up request received from: <strong>{email}</strong>
+                        </Text>
+                    </Row>
+                    <Row>
+                        <Text>
+                            Thank you for registering. Here is your verification code: <strong>{otp}</strong>
                         </Text>
                     </Row>
                     <Row>
