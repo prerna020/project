@@ -6,8 +6,9 @@ import { User } from "@/src/models/User";
 
 export async function DELETE(
     request: Request,
-    { params }: { params: { msgId: string } }
+    { params }: { params: Promise<{ msgId: string }> }
 ) {
+    const { msgId } = await params;
     await dbConnect();
     const session = await getServerSession(authOptions);
     const user: User = session?.user;
@@ -20,7 +21,7 @@ export async function DELETE(
 		// $pull removes matching element from the messages array
 		const result = await UserModel.updateOne(
 			{ _id: user._id },
-			{ $pull: { message: { _id: params.msgId } } }
+			{ $pull: { message: { _id: msgId } } }
 		);
 
 		if (result.modifiedCount === 0) {

@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
     const session = await getServerSession(authOptions)
     const user: User = session?.user
-    if (!session || !!session.user) {
+    if (!session || !session.user) {
         return Response.json(
             {
                 success: false,
@@ -31,28 +31,29 @@ export async function GET(request: Request) {
                 }
             },
             {
-                $unwind: "$messages"
+                $unwind: "$message"
             },
             {
                 $sort: {
-                    "messages.createdAt": -1
+                    "message.createdAt": -1
                 }
             },
             {
                 $group: {
                     _id: "$_id",
-                    messages: { $push: "$messages" }
+                    message: { $push: "$message" }
                 }
             }
         ])
         if (!user || user.length === 0) {
             return Response.json(
                 {
-                    success: false,
-                    message: "User not found"
+                    success: true,
+                    message: "No messages found",
+                    messages: []
                 },
                 {
-                    status: 404
+                    status: 200
                 }
             )
         }
@@ -60,7 +61,7 @@ export async function GET(request: Request) {
             {
                 success: true,
                 message: "Messages fetched successfully",
-                messages: user[0].messages
+                messages: user[0].message || []
             },
             {
                 status: 200
