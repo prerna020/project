@@ -4,10 +4,99 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+    provider = "prisma-client"
+    output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+    provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model User{
+    id        String   @id @default(cuid())
+    email     String   @unique
+    username  String   @unique
+    name      String?
+    bio       String?
+    role      Role     @default(USER)
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Relations
+    tweets    Tweet[]
+    likes     Like[]
+
+    // Self-relation: a user can follow many users, and be followed by many
+    following Follow[] @relation("Follower")
+    followers Follow[] @relation("Following")
+
+    @@index([username])
+    @@index([createdAt])
+}
+
+
+model Tweet {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Foreign key — Tweet belongs to a User
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  // Relations
+  likes     Like[]
+  hashtags  Hashtag[]
+
+  @@index([authorId])
+  @@index([createdAt])
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  tweetId   String
+  tweet     Tweet    @relation(fields: [tweetId], references: [id], onDelete: Cascade)
+
+  // A user can only like a tweet once
+  @@unique([userId, tweetId])
+  @@index([tweetId])
+  @@index([userId])
+}
+
+
+model Follow {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+
+  followerId  String
+  follower    User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+
+  followingId String
+  following   User     @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  // A user can only follow another user once
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+}
+
+
+
+model Hashtag {
+  id        String   @id @default(cuid())
+  name      String   @unique  // e.g. "nextjs"
+  createdAt DateTime @default(now())
+
+  tweets    Tweet[]
 }
