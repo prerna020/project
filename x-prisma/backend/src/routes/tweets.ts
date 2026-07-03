@@ -1,15 +1,10 @@
-import { PrismaClient } from "../../generated/prisma/client.js"
+import { PrismaClient } from "@prisma/client";
+
 import { Router, type Request, type Response } from "express";
 import dotenv from "dotenv";
-import { Pool } from "pg";
-import { PrismaPg } from "@prisma/adapter-pg";
 
 dotenv.config();
-
-
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-const prisma = new PrismaClient({ adapter })
+const prisma = new PrismaClient()
 
 const router = Router();
 
@@ -56,7 +51,7 @@ router.get("/", async (req: Request, res: Response) => {
 
 router.get("/:id", async (req: Request, res: Response) => {
     const tweet = await prisma.tweet.findUnique({
-        where: { id: req.params.id as string},
+        where: { id: req.params.id as string },
     })
 
     if (!tweet) return res.status(404).json({ error: "Tweet not found" })
@@ -65,7 +60,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 
 router.delete("/:id", async (req: Request, res: Response) => {
     try {
-        await prisma.tweet.delete({ where: { id: req.params.id as string} });
+        await prisma.tweet.delete({ where: { id: req.params.id as string } });
         return res.status(204).send();
     } catch (error: any) {
         if (error.code === "P2025") {
@@ -75,6 +70,28 @@ router.delete("/:id", async (req: Request, res: Response) => {
     }
 });
 
+router.post("/:id/like", async (req: Request, res: Response) => {
+    const { userId } = req.body;
 
+    try {
+        const like = await prisma.like.create({
+            data: { tweetId: req.params.id as string, userId: userId as string },
+        })
+        return res.status(201).json(like);
+    } catch (error: any) {
+        if (error.code === "P2002") {
+            return res.status(409).json({ error: "Already liked" });
+        }
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+
+router.delete("/:id/like", async (req: Request, res: Response) => {
+    await prisma.like.delete({
+        where: { userId_tweetId: { tweetId: req.params.id as string, userId: req.body.userId as string } },
+    })
+    return res.status(204).send();
+});
 
 export default router;
