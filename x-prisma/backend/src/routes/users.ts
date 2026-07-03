@@ -93,4 +93,36 @@ router.delete("/:id", async (req: Request, res: Response) => {
     }
 });
 
+router.get("/:id/feed", async (req: Request, res: Response) => {
+    const { id } = req.params;
+
+    // Step 1: find who this user follows
+    // Step 2: fetch recent tweets from those users
+    // Prisma lets us do this in ONE query using nested where
+
+    const feed = await prisma.tweet.findMany({
+        where: {
+            author: {
+                followers: {
+                    some: {
+                        followerId: id as string,
+                    },
+                },
+            },
+        },
+        include: {
+            author: {
+                select: { username: true, name: true },
+            },
+            _count: {
+                select: { likes: true },
+            },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 20,
+    });
+
+    return res.json(feed);
+});
+
 export default router;

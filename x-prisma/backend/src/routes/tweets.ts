@@ -94,4 +94,71 @@ router.delete("/:id/like", async (req: Request, res: Response) => {
     return res.status(204).send();
 });
 
+router.get("/:id/full", async (req: Request, res: Response) => {
+    const tweet = await prisma.tweet.findUnique({
+        where: { id: req.params.id as string },
+        include: {
+            author: {
+                select: { 
+                    id: true,
+                    username: true,
+                    name: true,
+                },
+            },
+            likes: {
+                include: {
+                    user: {
+                        select: { username: true },
+                    },
+                },
+            },
+            hashtags: true, 
+            _count: {
+                select: { likes: true },
+            },
+        },
+    });
+
+    if (!tweet) return res.status(404).json({ error: "Tweet not found" });
+    return res.json(tweet);
+});
+
+// POST /tweets — create tweet WITH hashtags in one nested write
+router.post("/with-hashtags", async (req: Request, res: Response) => {
+    const { content, authorId, hashtags } = req.body;
+  // hashtags: ["nextjs", "prisma", "typescript"]
+
+    if (!content || !authorId) {
+        return res.status(400).json({ error: "content and authorId required" });
+    }
+
+    try {
+        const tweet = await prisma.tweet.create({
+            data: {
+                content,
+                authorId,
+                hashtags: {
+                // connectOrCreate: connect if hashtag exists, create if not
+                // This prevents duplicate hashtag rows
+                    connectOrCreate: (hashtags ?? []).map((tag: string) => ({
+                        where: { name: tag.toLowerCase() },
+                        create: { name: tag.toLowerCase() },
+                    })),
+                },
+            },
+            include: {
+                hashtags: true,
+                author: { select: { username: true } },
+            },
+        });
+
+        return res.status(201).json(tweet);
+    } catch (error: any) {
+        if (error.code === "P2003") {
+            return res.status(400).json({ error: "Author not found" });
+        }
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 export default router;
