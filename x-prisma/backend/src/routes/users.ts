@@ -125,4 +125,80 @@ router.get("/:id/feed", async (req: Request, res: Response) => {
     return res.json(feed);
 });
 
+
+router.post("/:id/follow", async (req: Request, res: Response) => {
+    const { followerId } = req.body;
+    const followingId = req.params.id as string;
+
+    if (followerId === followingId) {
+        return res.status(400).json({ error: "Cannot follow yourself" });
+    }
+
+    try {
+        const follow = await prisma.follow.create({
+            data: { followerId, followingId },
+        });
+        return res.status(201).json(follow);
+    } catch (error: any) {
+        if (error.code === "P2002") {
+            return res.status(409).json({ error: "Already following" });
+        }
+        if (error.code === "P2003") {
+            return res.status(404).json({ error: "User not found" });
+        }
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// DELETE /users/:id/follow — unfollow
+router.delete("/:id/follow", async (req: Request, res: Response) => {
+    const { followerId } = req.body;
+    const followingId = req.params.id as string;
+
+    try {
+        await prisma.follow.delete({
+            where: {
+                followerId_followingId: { followerId, followingId },
+            },
+        });
+        return res.status(204).send();
+    } catch (error: any) {
+        if (error.code === "P2025") {
+            return res.status(404).json({ error: "Not following this user" });
+        }
+        return res.status(500).json({ error: "Internal server error" });
+    }
+});
+
+// GET /users/:id/profile — user + follower counts + recent tweets
+router.get("/:id/profile", async (req: Request, res: Response) => {
+    const user = await prisma.user.findUnique({
+        where: { id: req.params.id as string },
+        include: {
+            _count: {
+                select: {
+                    tweets: true,
+                    followers: true,
+                    following: true,
+                    likes: true,
+                },
+            },
+            tweets: {
+                orderBy: { createdAt: "desc" },
+                take: 5,
+                include: {
+                    _count: { select: { likes: true } },
+                    hashtags: true,
+                },
+            },
+        },
+    });
+
+    if (!user) return res.status(404).json({ error: "User not found" });
+    return res.json(user);
+});
+
+
+
+
 export default router;
