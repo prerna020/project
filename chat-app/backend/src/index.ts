@@ -1,8 +1,14 @@
 import { WebSocket, WebSocketServer } from "ws";
 import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+const MONGODB_URI = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/chat-app";
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 8080;
 
 // 1. Setup MongoDB Connection logic
-mongoose.connect("mongodb://127.0.0.1:27017/chat-app")
+mongoose.connect(MONGODB_URI)
     .then(() => console.log("Connected to MongoDB successfully"))
     .catch((err) => console.error("Failed to connect to MongoDB", err));
 
@@ -16,7 +22,7 @@ const messageSchema = new mongoose.Schema({
 
 const Message = mongoose.model("Message", messageSchema);
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocketServer({ port: PORT });
 
 interface User {
     socket: WebSocket; 

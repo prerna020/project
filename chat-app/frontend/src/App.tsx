@@ -33,7 +33,8 @@ export default function App() {
       wsRef.current.close();
     }
 
-    const ws = new WebSocket("ws://localhost:8080");
+    const WS_URL = import.meta.env.VITE_WS_URL || "ws://localhost:8080";
+    const ws = new WebSocket(WS_URL);
     wsRef.current = ws;
 
     ws.onopen = () => {
